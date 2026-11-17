@@ -1,0 +1,1890 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#07101f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>极光雪境 · 3D 滑雪模拟器</title>
+<style>
+:root{
+  --acc:#5fe3ff;
+  --acc2:#7cffb2;
+  --line:rgba(120,190,255,.22);
+  --panel:rgba(9,20,38,.62);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{
+  height:100%;overflow:hidden;background:#04080f;color:#e8f2ff;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  user-select:none;-webkit-user-select:none;
+}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;}
+
+/* ================= 首页 ================= */
+#menu{
+  position:fixed;inset:0;z-index:20;overflow-y:auto;overscroll-behavior:contain;
+  background:linear-gradient(180deg,rgba(3,8,18,.35) 0%,rgba(3,8,18,.72) 42%,rgba(2,6,14,.94) 100%);
+  padding:calc(env(safe-area-inset-top) + 22px) 16px calc(env(safe-area-inset-bottom) + 24px);
+  transition:opacity .45s ease, visibility .45s;
+}
+#menu.hide{opacity:0;visibility:hidden;pointer-events:none;}
+.menu-inner{width:100%;max-width:520px;margin:0 auto;}
+.brand{text-align:center;margin-bottom:18px;}
+.brand h1{
+  font-size:30px;letter-spacing:.22em;font-weight:800;
+  background:linear-gradient(100deg,#dff4ff,#5fe3ff 40%,#a9b6ff 70%,#7cffb2);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 40px rgba(95,227,255,.25);
+}
+.brand .sub{
+  margin-top:7px;font-size:10.5px;letter-spacing:.34em;color:#7ea6cc;
+  text-transform:uppercase;
+}
+.brand .line{
+  margin:14px auto 0;width:76px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--acc),transparent);
+}
+.sec{margin-top:17px;}
+.sec>h3{
+  font-size:11px;letter-spacing:.2em;color:#84aacf;font-weight:600;
+  margin-bottom:9px;display:flex;align-items:center;gap:7px;
+}
+.sec>h3::before{content:'';width:3px;height:11px;border-radius:2px;
+  background:linear-gradient(180deg,var(--acc),rgba(95,227,255,.15));}
+.opts{display:flex;gap:8px;flex-wrap:wrap;}
+.opt{
+  flex:1 1 0;min-width:86px;padding:11px 6px;border-radius:12px;
+  border:1px solid var(--line);background:rgba(255,255,255,.04);
+  color:#c3daf2;font-size:13px;text-align:center;line-height:1.3;
+  transition:.16s ease;cursor:pointer;
+}
+.opt small{display:block;font-size:9.5px;color:#6f92b6;margin-top:3px;letter-spacing:.04em;}
+.opt.on{
+  border-color:var(--acc);background:rgba(95,227,255,.16);color:#fff;
+  box-shadow:0 0 0 1px rgba(95,227,255,.85) inset, 0 0 20px rgba(95,227,255,.22);
+}
+.opt.on small{color:#a9dcff;}
+
+.chars{display:flex;gap:9px;}
+.char{
+  flex:1;border-radius:13px;padding:9px 4px 8px;border:1px solid var(--line);
+  background:rgba(255,255,255,.04);text-align:center;transition:.16s;cursor:pointer;
+}
+.char .dot{
+  width:26px;height:26px;border-radius:50%;margin:0 auto 6px;
+  box-shadow:0 0 0 2px rgba(255,255,255,.14), 0 4px 12px rgba(0,0,0,.4);
+}
+.char span{font-size:10.5px;color:#a9c6e2;letter-spacing:.06em;}
+.char.on{border-color:var(--acc);background:rgba(95,227,255,.14);}
+.char.on span{color:#e6f7ff;}
+
+.volrow{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;
+  border:1px solid var(--line);background:rgba(255,255,255,.035);}
+.volrow label{font-size:11.5px;color:#9dbcd9;letter-spacing:.08em;white-space:nowrap;}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;flex:1;height:3px;border-radius:3px;
+  background:linear-gradient(90deg,var(--acc),rgba(95,227,255,.16));outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:17px;height:17px;border-radius:50%;
+  background:#eafaff;box-shadow:0 0 12px rgba(95,227,255,.85);cursor:pointer;
+}
+input[type=range]::-moz-range-thumb{
+  width:17px;height:17px;border:none;border-radius:50%;
+  background:#eafaff;box-shadow:0 0 12px rgba(95,227,255,.85);
+}
+.toggle{
+  padding:6px 13px;border-radius:20px;font-size:11.5px;border:1px solid var(--line);
+  background:rgba(255,255,255,.05);color:#8fb2d2;cursor:pointer;transition:.16s;white-space:nowrap;
+}
+.toggle.on{background:rgba(124,255,178,.2);border-color:rgba(124,255,178,.6);color:#d8ffe9;}
+
+.start-btn{
+  width:100%;margin-top:24px;padding:17px;border:none;border-radius:16px;
+  font-size:16.5px;font-weight:800;letter-spacing:.35em;color:#02202c;
+  background:linear-gradient(100deg,#7cffb2,#5fe3ff 55%,#9db8ff);
+  box-shadow:0 8px 34px rgba(95,227,255,.36), 0 0 0 1px rgba(255,255,255,.25) inset;
+  cursor:pointer;transition:.16s;
+}
+.start-btn:active{transform:scale(.975);box-shadow:0 4px 18px rgba(95,227,255,.4);}
+.tip{margin-top:14px;text-align:center;font-size:10.5px;color:#5b7e9f;letter-spacing:.08em;line-height:1.7;}
+
+/* ================= HUD ================= */
+#hud{position:fixed;inset:0;z-index:10;pointer-events:none;opacity:1;transition:opacity .35s;}
+#hud.hide{opacity:0;pointer-events:none;}
+#hud>*{pointer-events:auto;}
+
+.hud-top{
+  position:absolute;top:calc(env(safe-area-inset-top) + 10px);left:0;right:0;
+  display:flex;align-items:flex-start;justify-content:space-between;
+  padding:0 12px;gap:8px;
+}
+.mini-btn{
+  width:42px;height:42px;border-radius:13px;flex:0 0 auto;
+  border:1px solid var(--line);background:rgba(8,20,38,.55);
+  color:#cfe8ff;font-size:16px;display:flex;align-items:center;justify-content:center;
+  transition:.14s;cursor:pointer;
+}
+.mini-btn:active{background:rgba(95,227,255,.3);transform:scale(.94);}
+.mini-btn.wide{width:auto;padding:0 13px;font-size:12.5px;letter-spacing:.1em;}
+
+.stats{display:flex;gap:7px;flex:1;justify-content:center;}
+.stat{
+  min-width:62px;padding:6px 8px 5px;border-radius:12px;text-align:center;
+  border:1px solid var(--line);background:rgba(8,20,38,.5);
+}
+.stat b{display:block;font-size:19px;font-weight:800;letter-spacing:-.02em;
+  color:#eaf9ff;text-shadow:0 0 16px rgba(95,227,255,.55);font-variant-numeric:tabular-nums;}
+.stat em{display:block;font-style:normal;font-size:9px;color:#7fa3c4;letter-spacing:.14em;margin-top:1px;}
+
+#board{
+  position:absolute;left:12px;top:calc(env(safe-area-inset-top) + 62px);
+  width:142px;padding:8px 9px;border-radius:13px;
+  border:1px solid rgba(120,190,255,.16);background:rgba(6,16,32,.5);
+  font-size:10.5px;line-height:1.5;
+}
+#board .bt{font-size:9px;letter-spacing:.18em;color:#6f93b6;margin-bottom:5px;}
+#board .row{display:flex;justify-content:space-between;gap:6px;padding:2px 0;color:#a9c6e0;}
+#board .row.me{color:#7cffb2;font-weight:700;}
+#board .row i{font-style:normal;color:#5f80a2;width:12px;}
+#board .row s{text-decoration:none;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#board .row u{text-decoration:none;color:#8fb2d2;font-variant-numeric:tabular-nums;}
+
+.controls{
+  position:absolute;left:0;right:0;
+  bottom:calc(env(safe-area-inset-bottom) + 16px);
+  display:flex;justify-content:space-between;align-items:flex-end;
+  padding:0 16px;
+}
+.pad{display:flex;gap:12px;}
+.ctrl{
+  width:74px;height:74px;border-radius:50%;
+  border:1px solid rgba(150,210,255,.32);
+  background:rgba(8,22,42,.52);color:#dff1ff;
+  font-size:20px;font-weight:700;letter-spacing:.04em;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .08s, background .12s, box-shadow .12s;
+  touch-action:none;cursor:pointer;
+}
+.ctrl:active,.ctrl.on{
+  background:rgba(95,227,255,.34);transform:scale(.93);
+  box-shadow:0 0 26px rgba(95,227,255,.45);
+}
+.ctrl.acc{border-color:rgba(124,255,178,.45);color:#d6ffe8;font-size:15px;}
+.ctrl.acc:active,.ctrl.acc.on{background:rgba(124,255,178,.34);box-shadow:0 0 26px rgba(124,255,178,.45);}
+.ctrl.brk{font-size:15px;color:#ffd6d6;border-color:rgba(255,150,150,.35);}
+.ctrl.brk:active,.ctrl.brk.on{background:rgba(255,120,120,.32);box-shadow:0 0 26px rgba(255,120,120,.4);}
+
+/* ================= 浮动提示 ================= */
+#toast{
+  position:fixed;left:50%;top:32%;transform:translate(-50%,-50%) scale(.9);
+  z-index:30;padding:13px 26px;border-radius:14px;
+  background:rgba(8,22,42,.86);border:1px solid rgba(95,227,255,.4);
+  color:#e8f8ff;font-size:15px;font-weight:700;letter-spacing:.12em;
+  opacity:0;pointer-events:none;transition:.3s cubic-bezier(.2,.9,.3,1.3);
+  box-shadow:0 0 40px rgba(95,227,255,.28);white-space:nowrap;
+}
+#toast.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+
+/* ================= 结算 ================= */
+#result{
+  position:fixed;inset:0;z-index:25;display:flex;align-items:center;justify-content:center;
+  background:rgba(2,7,16,.78);opacity:0;visibility:hidden;transition:.35s;
+  padding:20px;
+}
+#result.show{opacity:1;visibility:visible;}
+.result-card{
+  width:100%;max-width:340px;padding:26px 22px;border-radius:22px;
+  border:1px solid rgba(95,227,255,.3);background:rgba(9,22,42,.92);
+  text-align:center;box-shadow:0 20px 70px rgba(0,0,0,.6), 0 0 60px rgba(95,227,255,.12);
+}
+.result-card h2{
+  font-size:20px;letter-spacing:.26em;margin-bottom:18px;
+  background:linear-gradient(100deg,#7cffb2,#5fe3ff);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.result-card .big{font-size:44px;font-weight:800;color:#eafaff;
+  text-shadow:0 0 30px rgba(95,227,255,.6);font-variant-numeric:tabular-nums;line-height:1;}
+.result-card .big small{font-size:14px;color:#7fa3c4;margin-left:4px;letter-spacing:.1em;}
+.result-card .rows{margin:20px 0 22px;font-size:12.5px;color:#a9c6e0;}
+.result-card .rows div{display:flex;justify-content:space-between;padding:6px 2px;
+  border-bottom:1px solid rgba(120,190,255,.1);}
+.result-card .rows span:last-child{color:#e6f7ff;font-weight:700;font-variant-numeric:tabular-nums;}
+.result-card button{
+  width:100%;padding:14px;border-radius:13px;border:none;cursor:pointer;
+  font-size:14px;font-weight:700;letter-spacing:.2em;color:#02202c;margin-top:9px;
+  background:linear-gradient(100deg,#7cffb2,#5fe3ff);
+}
+.result-card button.ghost{
+  background:transparent;border:1px solid var(--line);color:#a9c6e0;
+}
+
+#loader{
+  position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;background:#04080f;
+  transition:opacity .6s;color:#7fa3c4;font-size:12px;letter-spacing:.24em;
+}
+#loader.hide{opacity:0;pointer-events:none;}
+.spin{
+  width:42px;height:42px;border-radius:50%;
+  border:2px solid rgba(95,227,255,.18);border-top-color:var(--acc);
+  animation:sp .9s linear infinite;
+}
+@keyframes sp{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<!-- ============ 首页 ============ -->
+<div id="menu">
+  <div class="menu-inner">
+    <div class="brand">
+      <h1>极光雪境</h1>
+      <div class="sub">Alpine Aurora · Ski Simulator</div>
+      <div class="line"></div>
+    </div>
+
+    <div class="sec">
+      <h3>选择场景</h3>
+      <div class="opts" id="optScene"></div>
+    </div>
+
+    <div class="sec">
+      <h3>选择天气</h3>
+      <div class="opts" id="optWeather"></div>
+    </div>
+
+    <div class="sec">
+      <h3>游玩模式</h3>
+      <div class="opts" id="optMode">
+        <div class="opt on" data-v="race">比赛模式<small>旗门 · 计时 · 排行</small></div>
+        <div class="opt" data-v="free">休闲模式<small>自由滑行 · 赏景</small></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>镜头视角</h3>
+      <div class="opts" id="optCam">
+        <div class="opt" data-v="third">第三人称<small>追踪镜头</small></div>
+        <div class="opt on" data-v="first">第一人称<small>FPV 沉浸</small></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>选择角色</h3>
+      <div class="chars" id="optChar"></div>
+    </div>
+
+    <div class="sec">
+      <h3>音频</h3>
+      <div class="volrow">
+        <label>音量</label>
+        <input type="range" id="vol" min="0" max="100" value="70">
+        <div class="toggle on" id="musicBtn">雪景配乐</div>
+      </div>
+    </div>
+
+    <button class="start-btn" id="btnStart">开 始 滑 雪</button>
+    <div class="tip">左/右转向 · 加速 · 刹车　|　滑至终点或点击 🚠 乘缆车返回山顶<br>在线玩家由雪场 AI 实时模拟 · 5 人同场竞速</div>
+  </div>
+</div>
+
+<!-- ============ HUD ============ -->
+<div id="hud" class="hide">
+  <div class="hud-top">
+    <div class="mini-btn wide" id="btnHome">‹ 首页</div>
+    <div class="stats">
+      <div class="stat"><b id="uiSpeed">0</b><em>KM/H</em></div>
+      <div class="stat"><b id="uiTime">0.0</b><em>秒</em></div>
+      <div class="stat" id="uiGateBox"><b id="uiGate">—</b><em>通过率</em></div>
+    </div>
+    <div class="mini-btn" id="btnCable">🚠</div>
+  </div>
+
+  <div id="board"></div>
+
+  <div class="controls">
+    <div class="pad">
+      <div class="ctrl" data-k="left">◀</div>
+      <div class="ctrl" data-k="right">▶</div>
+    </div>
+    <div class="pad">
+      <div class="ctrl brk" data-k="brake">刹车</div>
+      <div class="ctrl acc" data-k="accel">加速</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 提示 ============ -->
+<div id="toast"></div>
+
+<!-- ============ 结算 ============ -->
+<div id="result">
+  <div class="result-card">
+    <h2>滑 行 完 成</h2>
+    <div class="big" id="rTime">0.0<small>秒</small></div>
+    <div class="rows">
+      <div><span>最高时速</span><span id="rSpeed">0 km/h</span></div>
+      <div><span>旗门通过率</span><span id="rGate">—</span></div>
+      <div><span>最终排名</span><span id="rRank">—</span></div>
+    </div>
+    <button id="rAgain">再 滑 一 次</button>
+    <button class="ghost" id="rHome">返回首页</button>
+  </div>
+</div>
+
+<div id="loader">
+  <div class="spin"></div>
+  <div>正在生成雪山世界…</div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+/* =========================================================
+   工具函数
+   ========================================================= */
+const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp  = (a,b,t)=>a+(b-a)*t;
+const rnd   = (a,b)=>a+Math.random()*(b-a);
+const pick  = arr=>arr[(Math.random()*arr.length)|0];
+
+/* =========================================================
+   地形参数 —— 雪道从 z=0 到 z=-1400
+   ========================================================= */
+const TRACK_HALF = 34;
+const TRACK_LEN  = 1400;
+
+function trackY(z){
+  const t = Math.max(0, -z);
+  return -(0.10*t + 0.13*(t - 180*(1 - Math.exp(-t/180))));
+}
+function terrainHeight(x, z){
+  const d = Math.abs(x);
+  const s = Math.max(0, d - TRACK_HALF);
+  let h = trackY(z);
+  h += 58 * (1 - Math.exp(-s/52));
+  if (s > 0.4){
+    const k = Math.min(1, s/26);
+    h += Math.sin(x*0.040 + z*0.017) * 9 * k;
+    h += Math.cos(z*0.011 - x*0.030) * 7 * k;
+  }
+  h += Math.sin(x*0.33 - z*0.19) * 0.16;
+  return h;
+}
+
+/* =========================================================
+   环境预设
+   ========================================================= */
+const WEATHERS = [
+  { id:'sunset', name:'夕阳霞光',
+    skyTop:0x2a3a78, skyBot:0xffb98a, fog:0xffc7a8, fogNear:80, fogFar:2400,
+    sunColor:0xffd2a0, sunI:2.7, sunDir:[0.55,0.17,-1],
+    hemiSky:0xffd6b8, hemiGround:0x7d8fb5, hemiI:0.75,
+    snow:0xfff2e8, exposure:1.02, aurora:0, snowfall:0.35, wind:0.35 },
+  { id:'aurora', name:'极光夜滑',
+    skyTop:0x030a18, skyBot:0x0d2040, fog:0x0b1a30, fogNear:55, fogFar:1900,
+    sunColor:0xa9c8ff, sunI:0.6, sunDir:[-0.35,0.45,-1],
+    hemiSky:0x2c4a7a, hemiGround:0x08111f, hemiI:0.7,
+    snow:0xd2e2fa, exposure:1.45, aurora:1.0, snowfall:0.25, wind:0.25 },
+  { id:'storm', name:'暴风雪',
+    skyTop:0x59636f, skyBot:0xa8b4c2, fog:0xa9b6c6, fogNear:14, fogFar:250,
+    sunColor:0xdfe8f2, sunI:1.4, sunDir:[0.2,0.7,-1],
+    hemiSky:0xc8d6e6, hemiGround:0x8899ad, hemiI:1.05,
+    snow:0xeef5ff, exposure:1.0, aurora:0, snowfall:1.0, wind:1.0 },
+  { id:'dawn', name:'晨光',
+    skyTop:0x5b86c4, skyBot:0xffd7bf, fog:0xd6e2f0, fogNear:70, fogFar:2500,
+    sunColor:0xfff0d8, sunI:2.3, sunDir:[-0.5,0.3,-1],
+    hemiSky:0xd6e8ff, hemiGround:0x9fb0c8, hemiI:0.9,
+    snow:0xf6fbff, exposure:1.03, aurora:0, snowfall:0.3, wind:0.3 },
+  { id:'drizzle', name:'细雨',
+    skyTop:0x4a5a70, skyBot:0x8fa0b4, fog:0x8fa0b4, fogNear:40, fogFar:1250,
+    sunColor:0xc8d8e8, sunI:1.1, sunDir:[0.1,0.5,-1],
+    hemiSky:0xa9bccf, hemiGround:0x6f8093, hemiI:0.95,
+    snow:0xe4eef8, exposure:1.05, aurora:0, snowfall:0.15, wind:0.4, rain:true },
+];
+
+const SCENE_PRESETS = [
+  { id:'forest', name:'雪覆松林', sub:'极光松林', trees:1.00, fogMul:1.00, lake:false },
+  { id:'lake',   name:'高山湖泊', sub:'冰湖暮光', trees:0.55, fogMul:0.85, lake:true  },
+  { id:'mist',   name:'迷雾松林', sub:'薄雾弥漫', trees:1.35, fogMul:0.55, lake:false },
+];
+
+const CHAR_PRESETS = [
+  { name:'雪豹', jacket:0xff5a3c, pants:0x1b2a44, helmet:0xf2f4f8, board:0x22c1e0, skin:0xffd7b0 },
+  { name:'冰狐', jacket:0x36d6c0, pants:0x24263a, helmet:0x2a3a5c, board:0xffe14d, skin:0xffe0c0 },
+  { name:'夜鹰', jacket:0x8a5cff, pants:0x141726, helmet:0x0f1424, board:0xff4d9e, skin:0xf3c9a4 },
+  { name:'极光', jacket:0x4da6ff, pants:0x1a2c46, helmet:0xdff2ff, board:0x8affc1, skin:0xffdcc0 },
+  { name:'赤松', jacket:0xffb347, pants:0x2b2b33, helmet:0xffffff, board:0xff5555, skin:0xe8b98f },
+];
+
+const BOT_NAMES = ['雪原狐','林间风','极光使','冰河客','北境狼','云顶松','霜刃','白鹿'];
+
+/* =========================================================
+   全局状态
+   ========================================================= */
+const G = {
+  phase: 'menu',           // menu | play | cable | result
+  sceneId: 0,
+  weatherId: 3,
+  camMode: 'first',
+  charId: 0,
+  mode: 'race',
+  volume: 0.7,
+  musicOn: true,
+  cableT: 0,
+  cableFrom: new THREE.Vector3(),
+  startTime: 0,
+  elapsed: 0,
+  topSpeed: 0,
+};
+
+/* =========================================================
+   渲染器 / 场景 / 相机
+   ========================================================= */
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, powerPreference:'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(62, window.innerWidth/window.innerHeight, 0.3, 12000);
+camera.position.set(0, 60, 120);
+
+/* =========================================================
+   天空（含极光）
+   ========================================================= */
+const skyUniforms = {
+  topColor:    { value: new THREE.Color(0x5b86c4) },
+  bottomColor: { value: new THREE.Color(0xffd7bf) },
+  sunColor:    { value: new THREE.Color(0xfff0d8) },
+  sunDir:      { value: new THREE.Vector3(-0.5, 0.3, -1).normalize() },
+  auroraAmount:{ value: 0 },
+  time:        { value: 0 },
+};
+
+const skyMat = new THREE.ShaderMaterial({
+  uniforms: skyUniforms,
+  side: THREE.BackSide,
+  depthWrite: false,
+  vertexShader: `
+    varying vec3 vDir;
+    void main(){
+      vDir = position;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    varying vec3 vDir;
+    uniform vec3 topColor, bottomColor, sunColor, sunDir;
+    uniform float auroraAmount, time;
+
+    void main(){
+      vec3 d = normalize(vDir);
+      float t = pow(clamp(d.y * 0.95 + 0.10, 0.0, 1.0), 0.62);
+      vec3 col = mix(bottomColor, topColor, t);
+
+      // 太阳光晕与日轮
+      float sd = max(dot(d, normalize(sunDir)), 0.0);
+      col += sunColor * pow(sd, 500.0) * 3.5;
+      col += sunColor * pow(sd, 8.0)  * 0.32;
+      col += sunColor * pow(sd, 2.0)  * 0.07;
+
+      // 极光幕帘
+      if (auroraAmount > 0.001 && d.y > 0.015){
+        float az = atan(d.z, d.x);
+        float el = d.y;
+        float b1 = sin(az*4.0 + time*0.32 + sin(az*9.0 + time*0.21)*1.7);
+        float b2 = sin(az*6.5 - time*0.26 + cos(az*5.0 - time*0.14)*1.4);
+        float curtain = smoothstep(0.015, 0.26, el) * smoothstep(0.92, 0.42, el);
+        float a = curtain * (pow(max(b1,0.0), 2.0)*0.9 + pow(max(b2,0.0), 3.5)*0.62);
+        vec3 ac = mix(vec3(0.16,1.0,0.60), vec3(0.52,0.34,1.0), clamp(el*1.7,0.0,1.0));
+        col += ac * a * auroraAmount * 1.15;
+      }
+
+      // 轻微暗角
+      col *= 1.0 - 0.10 * pow(1.0 - clamp(d.y*2.0, 0.0, 1.0), 3.0);
+
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `
+});
+const skyMesh = new THREE.Mesh(new THREE.SphereGeometry(7000, 32, 20), skyMat);
+skyMesh.frustumCulled = false;
+scene.add(skyMesh);
+
+/* =========================================================
+   灯光
+   ========================================================= */
+const hemi = new THREE.HemisphereLight(0xd6e8ff, 0x9fb0c8, 0.9);
+scene.add(hemi);
+
+const sunLight = new THREE.DirectionalLight(0xfff0d8, 2.3);
+sunLight.position.set(-300, 180, -600);
+scene.add(sunLight);
+
+const ambient = new THREE.AmbientLight(0xffffff, 0.28);
+scene.add(ambient);
+
+/* =========================================================
+   地形
+   ========================================================= */
+const terrainMat = new THREE.MeshStandardMaterial({
+  color: 0xffffff,
+  roughness: 0.88,
+  metalness: 0.0,
+  vertexColors: true,
+});
+
+const terrainGeo = new THREE.PlaneGeometry(480, 1600, 140, 280);
+terrainGeo.rotateX(-Math.PI/2);
+terrainGeo.translate(0, 0, -650);
+
+(function buildTerrain(){
+  const pos = terrainGeo.attributes.position;
+  const count = pos.count;
+  const colors = new Float32Array(count * 3);
+  const cTrail = new THREE.Color(0xe6efff);
+  const cSnow  = new THREE.Color(0xffffff);
+  const tmp = new THREE.Color();
+
+  for (let i = 0; i < count; i++){
+    const x = pos.getX(i);
+    const z = pos.getZ(i);
+    pos.setY(i, terrainHeight(x, z));
+
+    const d = Math.abs(x);
+    const onTrail = clamp(1 - (d - TRACK_HALF) / 10, 0, 1);
+    tmp.copy(cSnow).lerp(cTrail, onTrail * 0.75);
+    // 细微随机让雪面不呆板
+    const n = 0.94 + Math.random() * 0.06;
+    colors[i*3]   = tmp.r * n;
+    colors[i*3+1] = tmp.g * n;
+    colors[i*3+2] = tmp.b * n;
+  }
+  terrainGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  terrainGeo.computeVertexNormals();
+})();
+
+const terrainMesh = new THREE.Mesh(terrainGeo, terrainMat);
+scene.add(terrainMesh);
+
+// 远处雪原底板（填补视野）
+const basePlane = new THREE.Mesh(
+  new THREE.PlaneGeometry(9000, 9000),
+  new THREE.MeshStandardMaterial({ color: 0xdfeaf8, roughness: 1.0 })
+);
+basePlane.rotation.x = -Math.PI/2;
+basePlane.position.set(0, -420, -1500);
+scene.add(basePlane);
+
+/* =========================================================
+   针叶林（InstancedMesh）
+   ========================================================= */
+const trunkGeo = new THREE.CylinderGeometry(0.16, 0.28, 1, 5);
+trunkGeo.translate(0, 0.5, 0);
+
+const coneGeo = new THREE.ConeGeometry(1, 1, 7, 1);
+coneGeo.translate(0, 0.5, 0);
+// 给锥体加顶点色：底部深绿 → 顶部积雪白
+(function tintCone(){
+  const p = coneGeo.attributes.position;
+  const col = new Float32Array(p.count * 3);
+  const dark = new THREE.Color(0x14301f);
+  const mid  = new THREE.Color(0x2b5c3c);
+  const snowy= new THREE.Color(0xeaf6ff);
+  const tmp = new THREE.Color();
+  for (let i = 0; i < p.count; i++){
+    const y = p.getY(i); // 0..1
+    if (y < 0.55) tmp.copy(dark).lerp(mid, y / 0.55);
+    else tmp.copy(mid).lerp(snowy, Math.min(1, (y - 0.55) / 0.4));
+    col[i*3] = tmp.r; col[i*3+1] = tmp.g; col[i*3+2] = tmp.b;
+  }
+  coneGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+})();
+
+const trunkMat = new THREE.MeshStandardMaterial({ color: 0x2a2118, roughness: 0.95 });
+const coneMat  = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, flatShading: true });
+
+const MAX_TREES = 1400;
+const trunkMesh = new THREE.InstancedMesh(trunkGeo, trunkMat, MAX_TREES);
+const coneAMesh = new THREE.InstancedMesh(coneGeo, coneMat, MAX_TREES);
+const coneBMesh = new THREE.InstancedMesh(coneGeo, coneMat, MAX_TREES);
+trunkMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+coneAMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+coneBMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+trunkMesh.frustumCulled = coneAMesh.frustumCulled = coneBMesh.frustumCulled = false;
+scene.add(trunkMesh, coneAMesh, coneBMesh);
+
+const treeData = [];
+function rebuildTrees(){
+  const preset = SCENE_PRESETS[G.sceneId];
+  const count = Math.floor(760 * preset.trees);
+  treeData.length = 0;
+
+  for (let i = 0; i < count; i++){
+    const z = 120 - Math.random() * 1700;
+    const side = Math.random() < 0.5 ? -1 : 1;
+    const off = TRACK_HALF + 5 + Math.pow(Math.random(), 1.7) * 190;
+    const x = side * off;
+    const y = terrainHeight(x, z);
+    const h = rnd(11, 26) * (off > 90 ? 1.12 : 1.0);
+    treeData.push({ x, y, z, h, r: rnd(0.75, 1.25) });
+  }
+
+  const m = new THREE.Matrix4();
+  const q = new THREE.Quaternion();
+  const e = new THREE.Euler();
+  const v = new THREE.Vector3();
+  const s = new THREE.Vector3();
+  const col = new THREE.Color();
+
+  for (let i = 0; i < MAX_TREES; i++){
+    const td = treeData[i];
+    if (!td){
+      m.makeScale(0,0,0);
+      trunkMesh.setMatrixAt(i, m);
+      coneAMesh.setMatrixAt(i, m);
+      coneBMesh.setMatrixAt(i, m);
+      continue;
+    }
+    const rot = Math.random() * Math.PI * 2;
+    const h = td.h, r = td.r;
+
+    e.set(0, rot, 0); q.setFromEuler(e);
+
+    // 树干
+    v.set(td.x, td.y, td.z);
+    s.set(h * 0.16, h * 0.34, h * 0.16);
+    m.compose(v, q, s);
+    trunkMesh.setMatrixAt(i, m);
+
+    // 下层树冠
+    v.set(td.x, td.y + h * 0.16, td.z);
+    s.set(h * 0.25 * r, h * 0.56, h * 0.25 * r);
+    m.compose(v, q, s);
+    coneAMesh.setMatrixAt(i, m);
+
+    // 上层树冠
+    v.set(td.x, td.y + h * 0.47, td.z);
+    s.set(h * 0.175 * r, h * 0.54, h * 0.175 * r);
+    m.compose(v, q, s);
+    coneBMesh.setMatrixAt(i, m);
+
+    const tint = 0.82 + Math.random() * 0.3;
+    col.setRGB(tint, tint, tint * (0.96 + Math.random()*0.08));
+    coneAMesh.setColorAt(i, col);
+    coneBMesh.setColorAt(i, col);
+  }
+
+  trunkMesh.instanceMatrix.needsUpdate = true;
+  coneAMesh.instanceMatrix.needsUpdate = true;
+  coneBMesh.instanceMatrix.needsUpdate = true;
+  if (coneAMesh.instanceColor) coneAMesh.instanceColor.needsUpdate = true;
+  if (coneBMesh.instanceColor) coneBMesh.instanceColor.needsUpdate = true;
+
+  trunkMesh.count = coneAMesh.count = coneBMesh.count = Math.min(treeData.length, MAX_TREES);
+}
+
+/* =========================================================
+   岩石
+   ========================================================= */
+const rockGeo = new THREE.IcosahedronGeometry(1, 0);
+const rockMat = new THREE.MeshStandardMaterial({ color: 0xb8c4d4, roughness: 0.95, flatShading: true });
+const rocks = new THREE.Group();
+scene.add(rocks);
+
+(function buildRocks(){
+  for (let i = 0; i < 90; i++){
+    const z = 80 - Math.random() * 1650;
+    const side = Math.random() < 0.5 ? -1 : 1;
+    const off = TRACK_HALF + 6 + Math.random() * 150;
+    const x = side * off;
+    const mesh = new THREE.Mesh(rockGeo, rockMat);
+    const sc = rnd(1.5, 6.5);
+    mesh.scale.set(sc * rnd(0.8, 1.4), sc * rnd(0.5, 1.0), sc * rnd(0.8, 1.4));
+    mesh.position.set(x, terrainHeight(x, z) + sc * 0.2, z);
+    mesh.rotation.set(rnd(0,6), rnd(0,6), rnd(0,6));
+    rocks.add(mesh);
+  }
+})();
+
+/* =========================================================
+   远山
+   ========================================================= */
+(function buildMountains(){
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0xe2ecf9, roughness: 1.0, flatShading: true
+  });
+  const geoCache = [];
+
+  for (let i = 0; i < 20; i++){
+    const a = (i / 20) * Math.PI * 2 + rnd(-0.14, 0.14);
+    const rad = rnd(1500, 2700);
+    const cx = Math.cos(a) * rad;
+    const cz = -700 + Math.sin(a) * rad;
+
+    const r = rnd(260, 560);
+    const h = rnd(420, 980);
+    const geo = new THREE.ConeGeometry(r, h, 6, 2);
+
+    // 顶点扰动 —— 形成山脊
+    const p = geo.attributes.position;
+    for (let k = 0; k < p.count; k++){
+      const y = p.getY(k);
+      if (y < h/2 - 1){
+        p.setX(k, p.getX(k) * rnd(0.82, 1.22));
+        p.setZ(k, p.getZ(k) * rnd(0.82, 1.22));
+        p.setY(k, y + rnd(-h*0.07, h*0.07));
+      }
+    }
+    geo.computeVertexNormals();
+
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(cx, -320 + h/2, cz);
+    m.rotation.y = rnd(0, 6.28);
+    scene.add(m);
+  }
+})();
+
+/* =========================================================
+   冰湖（场景 2）
+   ========================================================= */
+const lakeMesh = new THREE.Mesh(
+  new THREE.CircleGeometry(1, 48),
+  new THREE.MeshStandardMaterial({ color: 0x9fc8e8, roughness: 0.16, metalness: 0.55 })
+);
+lakeMesh.rotation.x = -Math.PI/2;
+lakeMesh.position.set(0, -300, -1350);
+lakeMesh.scale.set(420, 620, 1);
+lakeMesh.visible = false;
+scene.add(lakeMesh);
+
+/* =========================================================
+   角色模型
+   ========================================================= */
+function makeSkier(preset){
+  const g = new THREE.Group();
+  const M = (c, r=0.7, m=0) => new THREE.MeshStandardMaterial({ color:c, roughness:r, metalness:m });
+
+  const jacketMat = M(preset.jacket, 0.72);
+  const pantsMat  = M(preset.pants, 0.85);
+  const helmetMat = M(preset.helmet, 0.32, 0.2);
+  const boardMat  = M(preset.board, 0.42, 0.25);
+  const darkMat   = M(0x181d2a, 0.5, 0.3);
+
+  // 双板
+  const skiGeo = new THREE.BoxGeometry(0.22, 0.055, 1.72);
+  const skiL = new THREE.Mesh(skiGeo, boardMat);
+  skiL.position.set(-0.18, 0.028, 0.06);
+  const skiR = new THREE.Mesh(skiGeo, boardMat);
+  skiR.position.set(0.18, 0.028, 0.06);
+  g.add(skiL, skiR);
+
+  // 腿
+  const legGeo = new THREE.CylinderGeometry(0.085, 0.075, 0.78, 6);
+  const legL = new THREE.Mesh(legGeo, pantsMat);
+  legL.position.set(-0.155, 0.45, 0.02);
+  legL.rotation.x = 0.16;
+  const legR = new THREE.Mesh(legGeo, pantsMat);
+  legR.position.set(0.155, 0.45, 0.02);
+  legR.rotation.x = 0.16;
+  g.add(legL, legR);
+
+  // 身体（前倾）
+  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.205, 0.44, 4, 10), jacketMat);
+  torso.position.set(0, 1.06, -0.055);
+  torso.rotation.x = 0.26;
+  g.add(torso);
+
+  // 手臂 + 雪杖
+  const armGeo = new THREE.CylinderGeometry(0.062, 0.055, 0.6, 6);
+  const armL = new THREE.Mesh(armGeo, jacketMat);
+  armL.position.set(-0.245, 1.03, -0.14);
+  armL.rotation.set(0.85, 0, 0.28);
+  const armR = new THREE.Mesh(armGeo, jacketMat);
+  armR.position.set(0.245, 1.03, -0.14);
+  armR.rotation.set(0.85, 0, -0.28);
+  g.add(armL, armR);
+
+  const poleGeo = new THREE.CylinderGeometry(0.016, 0.016, 1.05, 4);
+  const poleL = new THREE.Mesh(poleGeo, darkMat);
+  poleL.position.set(-0.3, 0.62, 0.16);
+  poleL.rotation.set(-0.42, 0, 0.16);
+  const poleR = new THREE.Mesh(poleGeo, darkMat);
+  poleR.position.set(0.3, 0.62, 0.16);
+  poleR.rotation.set(-0.42, 0, -0.16);
+  g.add(poleL, poleR);
+
+  // 头 + 头盔
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.155, 14, 12), M(preset.skin, 0.95));
+  head.position.set(0, 1.5, 0.01);
+  g.add(head);
+
+  const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.172, 14, 12, 0, Math.PI*2, 0, Math.PI*0.62), helmetMat);
+  helmet.position.set(0, 1.505, 0.005);
+  g.add(helmet);
+
+  const goggle = new THREE.Mesh(
+    new THREE.BoxGeometry(0.245, 0.085, 0.07),
+    new THREE.MeshStandardMaterial({ color: 0x121a2c, roughness: 0.15, metalness: 0.85 })
+  );
+  goggle.position.set(0, 1.5, 0.135);
+  g.add(goggle);
+
+  g.userData.parts = { torso, armL, armR, legL, legR, head };
+  return g;
+}
+
+/* =========================================================
+   玩家
+   ========================================================= */
+const player = {
+  x: 0, y: 0, z: 6,
+  heading: 0,
+  speed: 0,
+  mesh: null,
+  dist: 0,
+  gatesPassed: 0,
+  gatesSeen: 0,
+};
+const playerGroup = new THREE.Group();
+scene.add(playerGroup);
+
+function buildPlayerMesh(){
+  if (player.mesh) playerGroup.remove(player.mesh);
+  player.mesh = makeSkier(CHAR_PRESETS[G.charId]);
+  playerGroup.add(player.mesh);
+}
+buildPlayerMesh();
+
+/* =========================================================
+   AI 在线玩家
+   ========================================================= */
+const bots = [];
+function buildBots(){
+  bots.forEach(b => scene.remove(b.mesh));
+  bots.length = 0;
+  const used = new Set([CHAR_PRESETS[G.charId].name]);
+  for (let i = 0; i < 4; i++){
+    let ci;
+    do { ci = (Math.random() * CHAR_PRESETS.length) | 0; } while (used.has(CHAR_PRESETS[ci].name) && used.size < 5);
+    used.add(CHAR_PRESETS[ci].name);
+    const mesh = makeSkier(CHAR_PRESETS[ci]);
+    const name = pick(BOT_NAMES);
+    scene.add(mesh);
+    bots.push({
+      mesh, name,
+      x: rnd(-24, 24),
+      z: 6 - rnd(0, 30),
+      y: 0,
+      speed: rnd(14, 24),
+      targetX: rnd(-20, 20),
+      heading: 0,
+      phase: rnd(0, 100),
+    });
+  }
+}
+
+/* =========================================================
+   旗门（比赛模式）
+   ========================================================= */
+const gates = [];
+const gateGroup = new THREE.Group();
+scene.add(gateGroup);
+
+const poleGeoG = new THREE.CylinderGeometry(0.12, 0.12, 3.2, 6);
+const poleMatRed  = new THREE.MeshStandardMaterial({ color: 0xff4444, roughness: 0.5, emissive: 0x330000 });
+const poleMatBlue = new THREE.MeshStandardMaterial({ color: 0x3388ff, roughness: 0.5, emissive: 0x001133 });
+const flagGeo = new THREE.PlaneGeometry(3.0, 1.1);
+
+function buildGates(){
+  gateGroup.clear();
+  gates.length = 0;
+  if (G.mode !== 'race') return;
+
+  const n = 12;
+  for (let i = 0; i < n; i++){
+    const z = -110 - i * 105;
+    const gx = rnd(-19, 19);
+    const red = i % 2 === 0;
+
+    const y = terrainHeight(gx, z);
+    const grp = new THREE.Group();
+    grp.position.set(gx, y, z);
+
+    const pl = new THREE.Mesh(poleGeoG, red ? poleMatRed : poleMatBlue);
+    pl.position.set(-5.0, 1.6, 0);
+    const pr = new THREE.Mesh(poleGeoG, red ? poleMatRed : poleMatBlue);
+    pr.position.set(5.0, 1.6, 0);
+    grp.add(pl, pr);
+
+    const flagMat = new THREE.MeshStandardMaterial({
+      color: red ? 0xff4444 : 0x3388ff,
+      side: THREE.DoubleSide, roughness: 0.7,
+      transparent: true, opacity: 0.92
+    });
+    const flag = new THREE.Mesh(flagGeo, flagMat);
+    flag.position.set(0, 2.85, 0);
+    grp.add(flag);
+
+    gateGroup.add(grp);
+    gates.push({ z, x: gx, mesh: grp, passed: false, counted: false, flag });
+  }
+}
+
+/* =========================================================
+   粒子系统：雪花 / 雪雾 / 雨
+   ========================================================= */
+function makeSnowTexture(){
+  const s = 64;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = s;
+  const ctx = cv.getContext('2d');
+  const grd = ctx.createRadialGradient(s/2, s/2, 0, s/2, s/2, s/2);
+  grd.addColorStop(0, 'rgba(255,255,255,1)');
+  grd.addColorStop(0.35, 'rgba(255,255,255,0.75)');
+  grd.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, s, s);
+  const tex = new THREE.CanvasTexture(cv);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+const snowTex = makeSnowTexture();
+
+const SNOW_COUNT = 4200;
+const snowPos = new Float32Array(SNOW_COUNT * 3);
+const snowVel = new Float32Array(SNOW_COUNT * 3);
+for (let i = 0; i < SNOW_COUNT; i++){
+  snowPos[i*3]   = rnd(-90, 90);
+  snowPos[i*3+1] = rnd(-60, 90);
+  snowPos[i*3+2] = rnd(-90, 90);
+  snowVel[i*3]   = rnd(-1, 1);
+  snowVel[i*3+1] = rnd(-4, -1.2);
+  snowVel[i*3+2] = rnd(-1, 1);
+}
+const snowGeo = new THREE.BufferGeometry();
+snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
+const snowMat = new THREE.PointsMaterial({
+  size: 0.85,
+  map: snowTex,
+  transparent: true,
+  opacity: 0.9,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
+  sizeAttenuation: true,
+  color: 0xffffff,
+});
+const snowPoints = new THREE.Points(snowGeo, snowMat);
+snowPoints.frustumCulled = false;
+scene.add(snowPoints);
+
+// 雪雾（板尾扬起的粉雪）
+const SPRAY_COUNT = 260;
+const sprayPos = new Float32Array(SPRAY_COUNT * 3);
+const sprayLife = new Float32Array(SPRAY_COUNT);
+const sprayVel = new Float32Array(SPRAY_COUNT * 3);
+for (let i = 0; i < SPRAY_COUNT; i++){ sprayPos[i*3+1] = -9999; }
+const sprayGeo = new THREE.BufferGeometry();
+sprayGeo.setAttribute('position', new THREE.BufferAttribute(sprayPos, 3));
+const sprayMat = new THREE.PointsMaterial({
+  size: 1.5, map: snowTex, transparent: true, opacity: 0.55,
+  depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true,
+});
+const sprayPoints = new THREE.Points(sprayGeo, sprayMat);
+sprayPoints.frustumCulled = false;
+scene.add(sprayPoints);
+let sprayCursor = 0;
+
+// 雨丝
+const RAIN_COUNT = 1400;
+const rainPos = new Float32Array(RAIN_COUNT * 3);
+for (let i = 0; i < RAIN_COUNT; i++){
+  rainPos[i*3] = rnd(-80, 80);
+  rainPos[i*3+1] = rnd(-40, 80);
+  rainPos[i*3+2] = rnd(-80, 80);
+}
+const rainGeo = new THREE.BufferGeometry();
+rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos, 3));
+const rainMat = new THREE.PointsMaterial({
+  size: 0.5, color: 0xcfe0f0, transparent: true, opacity: 0.42,
+  depthWrite: false, sizeAttenuation: true,
+});
+const rainPoints = new THREE.Points(rainGeo, rainMat);
+rainPoints.frustumCulled = false;
+rainPoints.visible = false;
+scene.add(rainPoints);
+
+/* =========================================================
+   音频引擎（Web Audio 全合成）
+   ========================================================= */
+const AudioEngine = {
+  ctx: null, master: null,
+  windGain: null, carveGain: null, musicGain: null,
+  noiseBuf: null,
+  started: false,
+  nextNoteTime: 0,
+  scale: [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25],
+
+  init(){
+    if (this.started) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    this.ctx = new AC();
+    this.started = true;
+
+    this.master = this.ctx.createGain();
+    this.master.gain.value = G.volume;
+    this.master.connect(this.ctx.destination);
+
+    // 噪声缓冲
+    const len = this.ctx.sampleRate * 2;
+    const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    this.noiseBuf = buf;
+
+    // —— 风声（持续）
+    const windSrc = this.ctx.createBufferSource();
+    windSrc.buffer = buf; windSrc.loop = true;
+    const windBP = this.ctx.createBiquadFilter();
+    windBP.type = 'bandpass'; windBP.frequency.value = 480; windBP.Q.value = 0.55;
+    this.windGain = this.ctx.createGain();
+    this.windGain.gain.value = 0.05;
+    windSrc.connect(windBP).connect(this.windGain).connect(this.master);
+    windSrc.start();
+
+    // —— 刻雪声
+    const carveSrc = this.ctx.createBufferSource();
+    carveSrc.buffer = buf; carveSrc.loop = true;
+    const carveBP = this.ctx.createBiquadFilter();
+    carveBP.type = 'bandpass'; carveBP.frequency.value = 1450; carveBP.Q.value = 1.1;
+    const carveHP = this.ctx.createBiquadFilter();
+    carveHP.type = 'highpass'; carveHP.frequency.value = 700;
+    this.carveGain = this.ctx.createGain();
+    this.carveGain.gain.value = 0;
+    carveSrc.connect(carveBP).connect(carveHP).connect(this.carveGain).connect(this.master);
+    carveSrc.start();
+
+    // —— 配乐通道
+    this.musicGain = this.ctx.createGain();
+    this.musicGain.gain.value = G.musicOn ? 0.5 : 0;
+    this.musicGain.connect(this.master);
+
+    this.nextNoteTime = this.ctx.currentTime + 1.0;
+  },
+
+  setVolume(v){
+    this.master && (this.master.gain.value = v);
+  },
+  setMusic(on){
+    if (this.musicGain) this.musicGain.gain.value = on ? 0.5 : 0;
+  },
+
+  // 风声 / 刻雪 强度随速度变化
+  updateMotion(speed, windFactor){
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const s = clamp(speed / 34, 0, 1);
+    this.windGain.gain.setTargetAtTime(0.03 + s * 0.26 * windFactor, t, 0.18);
+    this.carveGain.gain.setTargetAtTime(s > 0.04 ? 0.02 + s * 0.30 : 0, t, 0.10);
+  },
+
+  // 深雪踩踏 / 急停
+  footstep(strong = 1){
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const src = this.ctx.createBufferSource();
+    src.buffer = this.noiseBuf;
+    src.playbackRate.value = rnd(0.7, 1.1);
+    const bp = this.ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = rnd(700, 1600);
+    bp.Q.value = 1.4;
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(0.32 * strong, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.20);
+    src.connect(bp).connect(g).connect(this.master);
+    src.start(t);
+    src.stop(t + 0.25);
+  },
+
+  // 冰风底噪脉冲
+  windGust(){
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const src = this.ctx.createBufferSource();
+    src.buffer = this.noiseBuf; src.loop = true;
+    const bp = this.ctx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.frequency.value = rnd(260, 900); bp.Q.value = 0.8;
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.10, t + 0.9);
+    g.gain.linearRampToValueAtTime(0, t + 3.2);
+    src.connect(bp).connect(g).connect(this.master);
+    src.start(t); src.stop(t + 3.4);
+  },
+
+  // 雪景钢琴配乐（慢速五声音阶）
+  tickMusic(){
+    if (!this.ctx || !G.musicOn) return;
+    const now = this.ctx.currentTime;
+    if (now < this.nextNoteTime) return;
+
+    const f = this.scale[(Math.random() * this.scale.length) | 0] * (Math.random() < 0.3 ? 0.5 : 1);
+    const dur = rnd(3.4, 6.0);
+
+    const o1 = this.ctx.createOscillator();
+    o1.type = 'sine'; o1.frequency.value = f;
+    const o2 = this.ctx.createOscillator();
+    o2.type = 'triangle'; o2.frequency.value = f * 2.002;
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(0.16, now + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+    const g2 = this.ctx.createGain();
+    g2.gain.value = 0.22;
+    o2.connect(g2).connect(g);
+    o1.connect(g);
+    g.connect(this.musicGain);
+
+    o1.start(now); o1.stop(now + dur + 0.1);
+    o2.start(now); o2.stop(now + dur + 0.1);
+
+    this.nextNoteTime = now + rnd(2.0, 4.5);
+  }
+};
+
+/* =========================================================
+   环境应用
+   ========================================================= */
+const _sunDir = new THREE.Vector3();
+
+function applyEnvironment(){
+  const w = WEATHERS[G.weatherId];
+  const s = SCENE_PRESETS[G.sceneId];
+
+  // 天空
+  skyUniforms.topColor.value.setHex(w.skyTop);
+  skyUniforms.bottomColor.value.setHex(w.skyBot);
+  skyUniforms.sunColor.value.setHex(w.sunColor);
+  skyUniforms.sunDir.value.set(w.sunDir[0], w.sunDir[1], w.sunDir[2]).normalize();
+  skyUniforms.auroraAmount.value = w.aurora;
+
+  // 雾
+  const fogNear = w.fogNear;
+  const fogFar  = w.fogFar * s.fogMul;
+  scene.fog = new THREE.Fog(w.fog, fogNear, fogFar);
+  renderer.setClearColor(w.fog);
+
+  // 光照
+  _sunDir.copy(skyUniforms.sunDir.value);
+  sunLight.color.setHex(w.sunColor);
+  sunLight.intensity = w.sunI;
+  sunLight.position.copy(_sunDir).multiplyScalar(800);
+
+  hemi.color.setHex(w.hemiSky);
+  hemi.groundColor.setHex(w.hemiGround);
+  hemi.intensity = w.hemiI;
+
+  ambient.color.setHex(w.skyBot);
+  ambient.intensity = w.aurora > 0 ? 0.16 : 0.26;
+
+  renderer.toneMappingExposure = w.exposure;
+
+  // 雪面 / 树
+  terrainMat.color.setHex(w.snow);
+  basePlane.material.color.setHex(w.snow).multiplyScalar(0.94);
+
+  // 湖
+  lakeMesh.visible = s.lake;
+  if (s.lake){
+    lakeMesh.material.color.setHex(w.aurora > 0 ? 0x2a4a70 : 0x9fc8e8);
+  }
+
+  // 降水
+  rainPoints.visible = !!w.rain;
+  snowMat.opacity = w.snowfall > 0.6 ? 0.95 : 0.72;
+  snowMat.size = w.snowfall > 0.6 ? 1.05 : 0.85;
+
+  // 树木重建
+  rebuildTrees();
+}
+
+/* =========================================================
+   输入
+   ========================================================= */
+const keys = { left:false, right:false, accel:false, brake:false };
+
+document.querySelectorAll('[data-k]').forEach(btn => {
+  const k = btn.dataset.k;
+  const on  = e => { e.preventDefault(); keys[k] = true;  btn.classList.add('on'); };
+  const off = e => { e.preventDefault(); keys[k] = false; btn.classList.remove('on'); };
+  btn.addEventListener('pointerdown', on, { passive:false });
+  btn.addEventListener('pointerup', off, { passive:false });
+  btn.addEventListener('pointercancel', off, { passive:false });
+  btn.addEventListener('pointerleave', off, { passive:false });
+  btn.addEventListener('contextmenu', e => e.preventDefault());
+});
+
+window.addEventListener('keydown', e => {
+  switch(e.key){
+    case 'ArrowLeft': case 'a': case 'A': keys.left = true; break;
+    case 'ArrowRight': case 'd': case 'D': keys.right = true; break;
+    case 'ArrowUp': case 'w': case 'W': keys.accel = true; break;
+    case 'ArrowDown': case 's': case 'S': keys.brake = true; break;
+  }
+});
+window.addEventListener('keyup', e => {
+  switch(e.key){
+    case 'ArrowLeft': case 'a': case 'A': keys.left = false; break;
+    case 'ArrowRight': case 'd': case 'D': keys.right = false; break;
+    case 'ArrowUp': case 'w': case 'W': keys.accel = false; break;
+    case 'ArrowDown': case 's': case 'S': keys.brake = false; break;
+  }
+});
+
+/* =========================================================
+   UI 绑定
+   ========================================================= */
+const menuEl    = document.getElementById('menu');
+const hudEl     = document.getElementById('hud');
+const toastEl   = document.getElementById('toast');
+const resultEl  = document.getElementById('result');
+const boardEl   = document.getElementById('board');
+const uiSpeed   = document.getElementById('uiSpeed');
+const uiTime    = document.getElementById('uiTime');
+const uiGate    = document.getElementById('uiGate');
+const uiGateBox = document.getElementById('uiGateBox');
+
+let toastTimer = null;
+function toast(msg, ms = 1600){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms);
+}
+
+// 场景
+const optSceneEl = document.getElementById('optScene');
+SCENE_PRESETS.forEach((s, i) => {
+  const d = document.createElement('div');
+  d.className = 'opt' + (i === G.sceneId ? ' on' : '');
+  d.innerHTML = `${s.name}<small>${s.sub}</small>`;
+  d.onclick = () => {
+    G.sceneId = i;
+    [...optSceneEl.children].forEach((c, j) => c.classList.toggle('on', j === i));
+    applyEnvironment();
+  };
+  optSceneEl.appendChild(d);
+});
+
+// 天气
+const optWeatherEl = document.getElementById('optWeather');
+WEATHERS.forEach((w, i) => {
+  const d = document.createElement('div');
+  d.className = 'opt' + (i === G.weatherId ? ' on' : '');
+  d.textContent = w.name;
+  d.onclick = () => {
+    G.weatherId = i;
+    [...optWeatherEl.children].forEach((c, j) => c.classList.toggle('on', j === i));
+    applyEnvironment();
+  };
+  optWeatherEl.appendChild(d);
+});
+
+// 模式
+document.querySelectorAll('#optMode .opt').forEach(el => {
+  el.onclick = () => {
+    G.mode = el.dataset.v;
+    document.querySelectorAll('#optMode .opt').forEach(c => c.classList.toggle('on', c === el));
+  };
+});
+
+// 视角
+document.querySelectorAll('#optCam .opt').forEach(el => {
+  el.onclick = () => {
+    G.camMode = el.dataset.v;
+    document.querySelectorAll('#optCam .opt').forEach(c => c.classList.toggle('on', c === el));
+  };
+});
+
+// 角色
+const optCharEl = document.getElementById('optChar');
+CHAR_PRESETS.forEach((c, i) => {
+  const d = document.createElement('div');
+  d.className = 'char' + (i === G.charId ? ' on' : '');
+  d.innerHTML = `<div class="dot" style="background:linear-gradient(140deg,#${c.jacket.toString(16).padStart(6,'0')},#${c.board.toString(16).padStart(6,'0')})"></div><span>${c.name}</span>`;
+  d.onclick = () => {
+    G.charId = i;
+    [...optCharEl.children].forEach((e, j) => e.classList.toggle('on', j === i));
+    buildPlayerMesh();
+  };
+  optCharEl.appendChild(d);
+});
+
+// 音量 / 配乐
+const volEl = document.getElementById('vol');
+volEl.oninput = () => {
+  G.volume = volEl.value / 100;
+  AudioEngine.setVolume(G.volume);
+};
+const musicBtn = document.getElementById('musicBtn');
+musicBtn.onclick = () => {
+  G.musicOn = !G.musicOn;
+  musicBtn.classList.toggle('on', G.musicOn);
+  AudioEngine.setMusic(G.musicOn);
+};
+
+/* =========================================================
+   游戏流程
+   ========================================================= */
+function resetPlayer(){
+  player.x = 0;
+  player.z = 6;
+  player.y = terrainHeight(0, 6);
+  player.heading = 0;
+  player.speed = 0;
+  player.dist = 0;
+  player.gatesPassed = 0;
+  player.gatesSeen = 0;
+  G.elapsed = 0;
+  G.topSpeed = 0;
+  G.cableT = 0;
+  playerGroup.position.set(0, player.y, 6);
+  playerGroup.rotation.set(0, 0, 0);
+  buildPlayerMesh();
+}
+
+function startGame(){
+  AudioEngine.init();
+  if (AudioEngine.ctx && AudioEngine.ctx.state === 'suspended') AudioEngine.ctx.resume();
+
+  G.phase = 'play';
+  menuEl.classList.add('hide');
+  hudEl.classList.remove('hide');
+  resultEl.classList.remove('show');
+
+  applyEnvironment();
+  resetPlayer();
+  buildBots();
+  buildGates();
+
+  uiGateBox.style.display = G.mode === 'race' ? '' : 'none';
+  boardEl.style.display = '';
+
+  // 初始镜头
+  camera.position.set(0, player.y + 4, player.z + 9);
+
+  toast(G.mode === 'race' ? '比赛开始！穿越旗门' : '自由滑行 · 享受雪景', 1800);
+  setTimeout(() => AudioEngine.windGust(), 400);
+}
+
+function backToMenu(){
+  G.phase = 'menu';
+  menuEl.classList.remove('hide');
+  hudEl.classList.add('hide');
+  resultEl.classList.remove('show');
+  keys.left = keys.right = keys.accel = keys.brake = false;
+  document.querySelectorAll('.ctrl').forEach(c => c.classList.remove('on'));
+  if (AudioEngine.ctx){
+    AudioEngine.windGain.gain.value = 0.03;
+    AudioEngine.carveGain.gain.value = 0;
+  }
+}
+
+document.getElementById('btnStart').onclick = startGame;
+document.getElementById('btnHome').onclick  = backToMenu;
+document.getElementById('rHome').onclick    = backToMenu;
+document.getElementById('rAgain').onclick   = () => {
+  resultEl.classList.remove('show');
+  startGame();
+};
+document.getElementById('btnCable').onclick = () => {
+  if (G.phase === 'play') startCable();
+};
+
+/* ---------------- 缆车 ---------------- */
+function startCable(){
+  G.phase = 'cable';
+  G.cableT = 0;
+  G.cableFrom.set(player.x, player.y, player.z);
+  toast('🚠 正在乘坐高空缆车返回山顶…', 2200);
+  AudioEngine.footstep(0.7);
+}
+
+/* ---------------- 结算 ---------------- */
+function finishRun(){
+  G.phase = 'result';
+  keys.left = keys.right = keys.accel = keys.brake = false;
+
+  const total = Math.max(1, player.gatesSeen);
+  const rate = G.mode === 'race' ? Math.round(player.gatesPassed / total * 100) : null;
+
+  // 排名：按滑行距离
+  const ranks = [{ name: '你', d: player.dist }]
+    .concat(bots.map(b => ({ name: b.name, d: Math.max(0, 6 - b.z) })))
+    .sort((a, b) => b.d - a.d);
+  const myRank = ranks.findIndex(r => r.name === '你') + 1;
+
+  document.getElementById('rTime').innerHTML = `${G.elapsed.toFixed(1)}<small>秒</small>`;
+  document.getElementById('rSpeed').textContent = `${Math.round(G.topSpeed * 3.6)} km/h`;
+  document.getElementById('rGate').textContent = rate === null ? '—' : `${rate}%`;
+  document.getElementById('rRank').textContent = `第 ${myRank} 名 / ${ranks.length} 人`;
+
+  resultEl.classList.add('show');
+  hudEl.classList.add('hide');
+  AudioEngine.footstep(1.0);
+}
+
+/* =========================================================
+   更新逻辑
+   ========================================================= */
+function updatePlayer(dt){
+  // ---- 转向 ----
+  let turn = 0;
+  if (keys.left)  turn += 1;
+  if (keys.right) turn -= 1;
+
+  const turnRate = 1.25 * (1 - Math.min(0.52, player.speed / 78));
+  player.heading += turn * turnRate * dt;
+  player.heading = clamp(player.heading, -1.35, 1.35);
+
+  // ---- 方向 ----
+  const fx = -Math.sin(player.heading);
+  const fz = -Math.cos(player.heading);
+
+  // ---- 坡度加速度 ----
+  const h1 = terrainHeight(player.x, player.z);
+  const h2 = terrainHeight(player.x + fx * 4, player.z + fz * 4);
+  const slope = (h1 - h2) / 4;
+
+  let acc = Math.max(0, slope) * 46;
+  if (keys.accel) acc += 9.5;
+
+  player.speed += acc * dt;
+  player.speed -= 0.0105 * player.speed * player.speed * dt;
+
+  if (keys.brake) player.speed -= 28 * dt;
+  player.speed = clamp(player.speed, 0, 34);
+
+  // ---- 移动 ----
+  const px = player.x, pz = player.z;
+  player.x += fx * player.speed * dt;
+  player.z += fz * player.speed * dt;
+
+  // 边界约束
+  if (player.x > 118){ player.x = 118; }
+  if (player.x < -118){ player.x = -118; }
+
+  // 离开雪道减速
+  if (Math.abs(player.x) > TRACK_HALF + 3){
+    player.speed *= (1 - 1.1 * dt);
+  }
+
+  player.y = terrainHeight(player.x, player.z);
+  player.dist += Math.hypot(player.x - px, player.z - pz);
+
+  // ---- 角色姿态 ----
+  playerGroup.position.set(player.x, player.y, player.z);
+  playerGroup.rotation.y = player.heading;
+  playerGroup.rotation.z = -turn * 0.28 * Math.min(1, player.speed / 16);
+  playerGroup.rotation.x = -0.10 - Math.min(0.12, player.speed / 260);
+
+  // 手臂摆动
+  const t = performance.now() * 0.001;
+  if (player.mesh && player.mesh.userData.parts){
+    const amp = 0.10 + Math.min(0.22, player.speed / 120);
+    player.mesh.userData.parts.armL.rotation.x = 0.85 + Math.sin(t * 6) * amp;
+    player.mesh.userData.parts.armR.rotation.x = 0.85 - Math.sin(t * 6) * amp;
+  }
+
+  // ---- 记录 ----
+  G.topSpeed = Math.max(G.topSpeed, player.speed);
+  G.elapsed += dt;
+
+  // ---- 旗门判定 ----
+  if (G.mode === 'race'){
+    for (const g of gates){
+      if (g.counted) continue;
+      if (player.z < g.z + 2 && pz >= g.z + 2 - 1e-3){
+        g.counted = true;
+        player.gatesSeen++;
+        if (Math.abs(player.x - g.x) < 15){
+          g.passed = true;
+          player.gatesPassed++;
+          g.mesh.visible = false;
+        }
+      }
+    }
+  }
+
+  // ---- 终点 ----
+  if (player.z < -TRACK_LEN && G.phase === 'play'){
+    finishRun();
+  }
+}
+
+function updateBots(dt){
+  for (const b of bots){
+    b.phase += dt;
+    // 目标横向位置缓慢漂移
+    if (Math.random() < dt * 0.5){
+      b.targetX = clamp(b.x + rnd(-24, 24), -26, 26);
+    }
+    const dx = b.targetX - b.x;
+    b.x += clamp(dx * 1.4, -12, 12) * dt;
+
+    // 速度轻微波动
+    const targetSpeed = 17 + Math.sin(b.phase * 0.7) * 5 + 3;
+    b.speed = lerp(b.speed, targetSpeed, dt * 0.6);
+
+    b.z -= b.speed * dt;
+    const h = terrainHeight(b.x, b.z);
+    b.y = h;
+
+    b.heading = clamp(-dx * 0.02, -0.45, 0.45);
+    b.mesh.position.set(b.x, b.y, b.z);
+    b.mesh.rotation.y = b.heading;
+
+    // 到终点后重生到起点前方
+    if (b.z < -TRACK_LEN - 20){
+      b.z = 6 - rnd(0, 40);
+      b.x = rnd(-24, 24);
+      b.speed = rnd(15, 22);
+    }
+  }
+}
+
+function updateSpray(dt){
+  if (player.speed < 4) return;
+  const emit = Math.min(6, Math.floor(player.speed * 0.22));
+  const fx = -Math.sin(player.heading);
+  const fz = -Math.cos(player.heading);
+
+  for (let i = 0; i < emit; i++){
+    const idx = sprayCursor % SPRAY_COUNT;
+    sprayCursor++;
+    sprayPos[idx*3]   = player.x + rnd(-0.4, 0.4) - fx * 0.9;
+    sprayPos[idx*3+1] = player.y + rnd(0.05, 0.45);
+    sprayPos[idx*3+2] = player.z + rnd(-0.4, 0.4) - fz * 0.9;
+    sprayVel[idx*3]   = -fx * rnd(1, 5) + rnd(-2.2, 2.2);
+    sprayVel[idx*3+1] = rnd(1.2, 4.2);
+    sprayVel[idx*3+2] = -fz * rnd(1, 5) + rnd(-2.2, 2.2);
+    sprayLife[idx] = rnd(0.45, 0.95);
+  }
+}
+
+function stepSpray(dt){
+  let any = false;
+  for (let i = 0; i < SPRAY_COUNT; i++){
+    if (sprayLife[i] <= 0) continue;
+    any = true;
+    sprayLife[i] -= dt;
+    sprayVel[i*3+1] -= 9.0 * dt;
+    sprayPos[i*3]   += sprayVel[i*3]   * dt;
+    sprayPos[i*3+1] += sprayVel[i*3+1] * dt;
+    sprayPos[i*3+2] += sprayVel[i*3+2] * dt;
+    if (sprayLife[i] <= 0) sprayPos[i*3+1] = -9999;
+  }
+  if (any) sprayGeo.attributes.position.needsUpdate = true;
+}
+
+function updateSnow(dt){
+  const w = WEATHERS[G.weatherId];
+  const camX = camera.position.x;
+  const camY = camera.position.y;
+  const camZ = camera.position.z;
+  const half = 90;
+
+  const fall = 1.6 + w.snowfall * 12;
+  const windX = w.wind * 9 + 1.0;
+  const windZ = w.wind * 3 - player.speed * 0.06;
+
+  for (let i = 0; i < SNOW_COUNT; i++){
+    const i3 = i * 3;
+    snowPos[i3]   += (snowVel[i3] * 1.2 + windX) * dt;
+    snowPos[i3+1] += (-fall + snowVel[i3+1] * 0.35) * dt;
+    snowPos[i3+2] += (snowVel[i3+2] * 1.2 + windZ) * dt;
+
+    // 包裹到相机周围
+    if (snowPos[i3]   - camX >  half) snowPos[i3]   -= half * 2;
+    if (snowPos[i3]   - camX < -half) snowPos[i3]   += half * 2;
+    if (snowPos[i3+1] - camY >  half) snowPos[i3+1] -= half * 2;
+    if (snowPos[i3+1] - camY < -half) snowPos[i3+1] += half * 2;
+    if (snowPos[i3+2] - camZ >  half) snowPos[i3+2] -= half * 2;
+    if (snowPos[i3+2] - camZ < -half) snowPos[i3+2] += half * 2;
+  }
+  snowGeo.attributes.position.needsUpdate = true;
+  snowPoints.visible = w.snowfall > 0.02;
+
+  // 雨丝
+  if (rainPoints.visible){
+    for (let i = 0; i < RAIN_COUNT; i++){
+      const i3 = i * 3;
+      rainPos[i3+1] -= 55 * dt;
+      rainPos[i3]   += 6 * dt;
+      if (rainPos[i3+1] - camY < -50){
+        rainPos[i3]   = camX + rnd(-70, 70);
+        rainPos[i3+1] = camY + 60;
+        rainPos[i3+2] = camZ + rnd(-70, 70);
+      }
+      if (rainPos[i3] - camX > 80)  rainPos[i3] -= 160;
+      if (rainPos[i3] - camX < -80) rainPos[i3] += 160;
+      if (rainPos[i3+2] - camZ > 80)  rainPos[i3+2] -= 160;
+      if (rainPos[i3+2] - camZ < -80) rainPos[i3+2] += 160;
+    }
+    rainGeo.attributes.position.needsUpdate = true;
+  }
+}
+
+/* =========================================================
+   相机
+   ========================================================= */
+const _camTarget = new THREE.Vector3();
+const _lookTarget = new THREE.Vector3();
+let menuTime = 0;
+
+function updateCamera(dt){
+  if (G.phase === 'menu'){
+    menuTime += dt;
+    const a = menuTime * 0.075;
+    const r = 165;
+    camera.position.set(
+      Math.sin(a) * r,
+      72 + Math.sin(menuTime * 0.35) * 14,
+      -280 + Math.cos(a) * r
+    );
+    camera.lookAt(0, -50, -520);
+    camera.fov = lerp(camera.fov, 60, dt * 2);
+    camera.updateProjectionMatrix();
+    return;
+  }
+
+  if (G.phase === 'cable'){
+    G.cableT = Math.min(1, G.cableT + dt / 9.0);
+    const t = G.cableT;
+    const ease = t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2, 2)/2;
+
+    // 从当前位置回到山顶
+    const startX = G.cableFrom.x;
+    const startZ = G.cableFrom.z;
+    const startY = G.cableFrom.y;
+
+    const curX = lerp(startX, 0, ease);
+    const curZ = lerp(startZ, 14, ease);
+    const groundY = terrainHeight(curX, curZ);
+    const liftH = 22 + Math.sin(ease * Math.PI) * 30;
+    const curY = lerp(startY, groundY + 6, ease) + liftH;
+
+    // 缆车视角：略微后上方
+    camera.position.set(curX + 6, curY + 8, curZ + 16);
+    camera.lookAt(curX * 0.4, terrainHeight(curX, curZ - 260), curZ - 300);
+
+    // 玩家跟随缆车
+    playerGroup.position.set(curX, curY - liftH * 0.85, curZ);
+    playerGroup.rotation.y = 0;
+    playerGroup.rotation.z = Math.sin(performance.now() * 0.0012) * 0.05;
+
+    if (G.cableT >= 1){
+      G.phase = 'play';
+      resetPlayer();
+      camera.position.set(0, player.y + 3.4, player.z + 7.5);
+      toast('已返回山顶 · 继续滑行！', 1600);
+    }
+    return;
+  }
+
+  // ---- 正常游玩 ----
+  const fx = -Math.sin(player.heading);
+  const fz = -Math.cos(player.heading);
+
+  // FOV 随速度
+  const targetFov = 60 + Math.min(20, player.speed * 0.62);
+  camera.fov = lerp(camera.fov, targetFov, dt * 2.4);
+  camera.updateProjectionMatrix();
+
+  if (G.camMode === 'first'){
+    const bob = Math.sin(performance.now() * 0.006) * 0.035 * Math.min(1, player.speed / 8);
+    camera.position.set(
+      player.x + fx * 0.25,
+      player.y + 1.55 + bob,
+      player.z + fz * 0.25
+    );
+    _lookTarget.set(
+      player.x + fx * 30,
+      player.y + 1.05 - 0.10 * player.speed * 0.05,
+      player.z + fz * 30
+    );
+    camera.lookAt(_lookTarget);
+    player.mesh.visible = false;
+  } else {
+    const back = 5.4, up = 2.55;
+    _camTarget.set(
+      player.x - fx * back,
+      player.y + up,
+      player.z - fz * back
+    );
+    const k = 1 - Math.pow(0.0012, dt);
+    camera.position.lerp(_camTarget, k);
+
+    _lookTarget.set(
+      player.x + fx * 12,
+      player.y + 1.35,
+      player.z + fz * 12
+    );
+    camera.lookAt(_lookTarget);
+    player.mesh.visible = true;
+  }
+}
+
+/* =========================================================
+   HUD 更新
+   ========================================================= */
+let hudAcc = 0;
+function updateHUD(dt){
+  hudAcc += dt;
+  if (hudAcc < 0.07) return;
+  hudAcc = 0;
+
+  uiSpeed.textContent = Math.round(player.speed * 3.6);
+  uiTime.textContent = G.elapsed.toFixed(1);
+
+  if (G.mode === 'race'){
+    const total = Math.max(1, player.gatesSeen);
+    uiGate.textContent = Math.round(player.gatesPassed / total * 100) + '%';
+  }
+
+  // 排行榜
+  const rows = [{ name: '你', d: player.dist, me: true }]
+    .concat(bots.map(b => ({ name: b.name, d: Math.max(0, 6 - b.z), me: false })))
+    .sort((a, b) => b.d - a.d);
+
+  let html = '<div class="bt">在线玩家 · 排行</div>';
+  rows.forEach((r, i) => {
+    html += `<div class="row ${r.me ? 'me' : ''}"><i>${i+1}</i><s>${r.name}</s><u>${Math.round(r.d)}m</u></div>`;
+  });
+  boardEl.innerHTML = html;
+}
+
+/* =========================================================
+   主循环
+   ========================================================= */
+const clock = new THREE.Clock();
+
+function loop(){
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const now = performance.now() * 0.001;
+
+  skyUniforms.time.value = now;
+  skyMesh.position.copy(camera.position);
+
+  if (G.phase === 'play'){
+    updatePlayer(dt);
+    updateBots(dt);
+    updateSpray(dt);
+    stepSpray(dt);
+    updateHUD(dt);
+
+    AudioEngine.updateMotion(player.speed, WEATHERS[G.weatherId].wind);
+    AudioEngine.tickMusic();
+
+    // 极光微微呼吸
+    if (WEATHERS[G.weatherId].aurora > 0){
+      skyUniforms.auroraAmount.value =
+        WEATHERS[G.weatherId].aurora * (0.82 + Math.sin(now * 0.55) * 0.18);
+    }
+  } else if (G.phase === 'cable'){
+    updateBots(dt);
+    stepSpray(dt);
+    AudioEngine.updateMotion(6, 0.7);
+    AudioEngine.tickMusic();
+    updateHUD(dt);
+  } else if (G.phase === 'result'){
+    stepSpray(dt);
+    AudioEngine.updateMotion(0, 0.6);
+    AudioEngine.tickMusic();
+  } else {
+    // 菜单
+    AudioEngine.updateMotion(0, 0.5);
+    AudioEngine.tickMusic();
+    updateBots(dt);
+  }
+
+  updateSnow(dt);
+  updateCamera(dt);
+
+  // 旗门轻微摆动
+  for (const g of gates){
+    if (g.flag) g.flag.rotation.y = Math.sin(now * 1.6 + g.z * 0.01) * 0.18;
+  }
+
+  renderer.render(scene, camera);
+}
+
+/* =========================================================
+   窗口适配
+   ========================================================= */
+function onResize(){
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', onResize);
+window.addEventListener('orientationchange', () => setTimeout(onResize, 120));
+
+/* =========================================================
+   启动
+   ========================================================= */
+applyEnvironment();
+buildBots();
+resetPlayer();
+playerGroup.visible = true;
+
+renderer.setAnimationLoop(loop);
+
+// 隐藏加载页
+setTimeout(() => {
+  document.getElementById('loader').classList.add('hide');
+}, 600);
+
+// 首次触摸解锁音频（移动端策略）
+['pointerdown', 'touchstart', 'click'].forEach(ev => {
+  window.addEventListener(ev, () => {
+    if (AudioEngine.ctx && AudioEngine.ctx.state === 'suspended'){
+      AudioEngine.ctx.resume();
+    }
+  }, { once: true, passive: true });
+});
+
+// 页面隐藏时暂停音频
+document.addEventListener('visibilitychange', () => {
+  if (!AudioEngine.ctx) return;
+  if (document.hidden){
+    AudioEngine.ctx.suspend();
+  } else {
+    AudioEngine.ctx.resume();
+  }
+});
+
+</script>
+</body>
+</html>
